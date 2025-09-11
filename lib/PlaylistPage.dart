@@ -15,6 +15,7 @@ class PlaylistPage extends StatefulWidget {
 class _PlaylistPageState extends State<PlaylistPage> {
   List playlists = [];
   bool isLoading = true;
+  bool isGridView = true;
 
   @override
   void initState() {
@@ -55,6 +56,18 @@ class _PlaylistPageState extends State<PlaylistPage> {
                         pinned: true,
                         actions: [
                           IconButton(
+                            icon: Icon(
+                              isGridView ? Icons.list : Icons.grid_view,
+                              color: Colors.white,
+                              size: 28.sp,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                isGridView = !isGridView;
+                              });
+                            },
+                          ),
+                          IconButton(
                             icon: Icon(Icons.search,
                                 color: Colors.white, size: 28.sp),
                             onPressed: () {
@@ -83,40 +96,73 @@ class _PlaylistPageState extends State<PlaylistPage> {
                       ),
                       SliverPadding(
                         padding: EdgeInsets.symmetric(horizontal: 20.w),
-                        sliver: SliverGrid(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final playlist = playlists[index];
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => PlaylistDetailPage(
-                                        id: playlist['id'].toString(),
+                        sliver: isGridView
+                            ? SliverGrid(
+                                delegate: SliverChildBuilderDelegate(
+                                  (context, index) {
+                                    final playlist = playlists[index];
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PlaylistDetailPage(
+                                              id: playlist['id'].toString(),
+                                              coverUrl: playlist['coverImgUrl'],
+                                              name: playlist['name'],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: AppleMusicPlaylistCard(
                                         coverUrl: playlist['coverImgUrl'],
                                         name: playlist['name'],
+                                        playCount: playlist['playCount'],
                                       ),
-                                    ),
-                                  );
-                                },
-                                child: AppleMusicPlaylistCard(
-                                  coverUrl: playlist['coverImgUrl'],
-                                  name: playlist['name'],
-                                  playCount: playlist['playCount'],
+                                    );
+                                  },
+                                  childCount: playlists.length,
                                 ),
-                              );
-                            },
-                            childCount: playlists.length,
-                          ),
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.8,
-                            crossAxisSpacing: 16.w,
-                            mainAxisSpacing: 20.h,
-                          ),
-                        ),
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  childAspectRatio: 0.8,
+                                  crossAxisSpacing: 16.w,
+                                  mainAxisSpacing: 20.h,
+                                ),
+                              )
+                            : SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  (context, index) {
+                                    final playlist = playlists[index];
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PlaylistDetailPage(
+                                              id: playlist['id'].toString(),
+                                              coverUrl: playlist['coverImgUrl'],
+                                              name: playlist['name'],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        margin: EdgeInsets.only(bottom: 12.h),
+                                        child: PlaylistListTile(
+                                          coverUrl: playlist['coverImgUrl'],
+                                          name: playlist['name'],
+                                          playCount: playlist['playCount'],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  childCount: playlists.length,
+                                ),
+                              ),
                       ),
                       SliverPadding(
                         padding: EdgeInsets.only(bottom: 100.h),
@@ -125,6 +171,110 @@ class _PlaylistPageState extends State<PlaylistPage> {
                   ),
           ),
           const MiniPlayer(),
+        ],
+      ),
+    );
+  }
+}
+
+class PlaylistListTile extends StatelessWidget {
+  final String coverUrl;
+  final String name;
+  final int playCount;
+
+  const PlaylistListTile({
+    super.key,
+    required this.coverUrl,
+    required this.name,
+    required this.playCount,
+  });
+
+  String _formatPlayCount(int count) {
+    if (count > 100000000) {
+      return '${(count / 100000000).toStringAsFixed(1)}亿';
+    } else if (count > 10000) {
+      return '${(count / 10000).toStringAsFixed(1)}万';
+    }
+    return count.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 100.w,
+            height: 100.w,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12.r),
+              child: Image.network(
+                coverUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[800],
+                    child: Icon(
+                      Icons.music_note,
+                      color: Colors.white54,
+                      size: 24.sp,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          SizedBox(width: 16.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 25.sp,
+                    fontWeight: FontWeight.w500,
+                    height: 1.2,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.grey[400],
+                      size: 30.sp,
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      _formatPlayCount(playCount),
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 20.sp,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.chevron_right,
+            color: Colors.grey[400],
+            size: 24.sp,
+          ),
+          SizedBox(width: 16.w),
         ],
       ),
     );
@@ -244,7 +394,7 @@ class AppleMusicPlaylistCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20.sp,
+            fontSize: 25.sp,
             fontWeight: FontWeight.w500,
             height: 1.2,
           ),

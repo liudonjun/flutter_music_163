@@ -117,7 +117,7 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
                                       widget.name,
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 32.sp,
+                                        fontSize: 38.sp,
                                         fontWeight: FontWeight.bold,
                                         height: 1.2,
                                       ),
@@ -131,7 +131,7 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
                                           '${songs.length} 首歌曲',
                                           style: TextStyle(
                                             color: Colors.white70,
-                                            fontSize: 18.sp,
+                                            fontSize: 30.sp,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
@@ -251,7 +251,7 @@ class AppleMusicSongTile extends StatelessWidget {
                     '${index + 1}',
                     style: TextStyle(
                       color: Colors.white60,
-                      fontSize: 22.sp,
+                      fontSize: 30.sp,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -265,7 +265,7 @@ class AppleMusicSongTile extends StatelessWidget {
                         songName,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 20.sp,
+                          fontSize: 34.sp,
                           fontWeight: FontWeight.w600,
                         ),
                         maxLines: 1,
@@ -276,7 +276,7 @@ class AppleMusicSongTile extends StatelessWidget {
                         '$artistName - $albumName',
                         style: TextStyle(
                           color: Colors.white60,
-                          fontSize: 15.sp,
+                          fontSize: 25.sp,
                           fontWeight: FontWeight.w400,
                         ),
                         maxLines: 1,
@@ -290,15 +290,9 @@ class AppleMusicSongTile extends StatelessWidget {
                   duration,
                   style: TextStyle(
                     color: Colors.white60,
-                    fontSize: 16.sp,
+                    fontSize: 25.sp,
                     fontWeight: FontWeight.w400,
                   ),
-                ),
-                SizedBox(width: 8.w),
-                Icon(
-                  Icons.more_horiz,
-                  color: Colors.white60,
-                  size: 20.sp,
                 ),
               ],
             ),

@@ -414,13 +414,13 @@ class AppleMusicSearchTile extends StatelessWidget {
               children: [
                 // 排序数字
                 Container(
-                  width: 28.w,
+                  width: 35.w,
                   alignment: Alignment.center,
                   child: Text(
                     '$index',
                     style: TextStyle(
                       color: Colors.grey[500],
-                      fontSize: 18.sp,
+                      fontSize: 25.sp,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -467,7 +467,7 @@ class AppleMusicSearchTile extends StatelessWidget {
                         songName,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 19.sp,
+                          fontSize: 35.sp,
                           fontWeight: FontWeight.w500,
                         ),
                         maxLines: 1,
@@ -478,24 +478,12 @@ class AppleMusicSearchTile extends StatelessWidget {
                         artistName,
                         style: TextStyle(
                           color: Colors.grey[400],
-                          fontSize: 17.sp,
+                          fontSize: 20.sp,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                  ),
-                ),
-
-                // 更多选项
-                Container(
-                  width: 40.w,
-                  height: 40.w,
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.more_horiz,
-                    color: Colors.grey[500],
-                    size: 24.sp,
                   ),
                 ),
               ],

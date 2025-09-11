@@ -33,6 +33,8 @@ class _LyricPageState extends State<LyricPage> {
   List<LyricLine> _lyrics = [];
   int _currentIndex = 0;
   final ScrollController _scrollController = ScrollController();
+  int? _tappedIndex;
+  Timer? _tappedTimer;
 
   final PageController _pageController = PageController(initialPage: 0);
   String _lastSongId = '';
@@ -146,11 +148,38 @@ class _LyricPageState extends State<LyricPage> {
     }
   }
 
+  void _onLyricTap(int index) {
+    setState(() {
+      _tappedIndex = index;
+    });
+
+    _tappedTimer?.cancel();
+    _tappedTimer = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          _tappedIndex = null;
+        });
+      }
+    });
+
+    final targetTime = _lyrics[index].time;
+    _playerManager.seek(targetTime);
+
+    const itemHeight = 80.0;
+    final targetOffset = index * itemHeight;
+    _scrollController.animateTo(
+      targetOffset,
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
   @override
   void dispose() {
     _playerManager.removeListener(_onPlayerStateChanged);
     _scrollController.dispose();
     _pageController.dispose();
+    _tappedTimer?.cancel();
     super.dispose();
   }
 
@@ -315,63 +344,75 @@ class _LyricPageState extends State<LyricPage> {
 
   Widget _buildAlbumArtPage() {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // CD 封面
-        Container(
-          width: 600.w,
-          height: 600.w,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(150.r),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 30,
-                offset: const Offset(0, 15),
+        SizedBox(
+          height: 150.w,
+        ),
+        Expanded(
+          flex: 3,
+          child: Center(
+            child: Container(
+              width: 600.w,
+              height: 600.w,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(150.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 30,
+                    offset: const Offset(0, 15),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24.r),
-            child: _playerManager.albumArt.isNotEmpty
-                ? Image.network(_playerManager.albumArt, fit: BoxFit.cover)
-                : Container(color: Colors.grey[800]),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24.r),
+                child: _playerManager.albumArt.isNotEmpty
+                    ? Image.network(_playerManager.albumArt, fit: BoxFit.cover)
+                    : Container(color: Colors.grey[800]),
+              ),
+            ),
           ),
         ),
-
         SizedBox(height: 32.h),
-
-        // 歌曲标题
-        Text(_playerManager.songTitle,
-            style: TextStyle(color: Colors.white, fontSize: 48.sp)),
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: 5.w),
+          child: Text(
+            _playerManager.songTitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 48.sp,
+            ),
+          ),
+        ),
+        SizedBox(height: 16.h),
         Text(_playerManager.artistName,
             style: TextStyle(color: Colors.white70, fontSize: 32.sp)),
-
-        SizedBox(height: 24.h),
-
-        // 当前歌词显示
-        _lyrics.isEmpty
-            ? const SizedBox.shrink()
-            : Container(
-                height: 80.h,
-                padding: EdgeInsets.symmetric(horizontal: 80.w),
-                alignment: Alignment.center,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 400),
-                  child: _lyrics.isEmpty
-                      ? const SizedBox.shrink()
-                      : Text(
-                          _lyrics[_currentIndex].text,
-                          key: ValueKey(_currentIndex),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 50.sp,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                ),
-              ),
+        Expanded(
+          flex: 1,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 80.w),
+            alignment: Alignment.center,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              child: _lyrics.isEmpty
+                  ? const SizedBox.shrink()
+                  : Text(
+                      _lyrics[_currentIndex].text,
+                      key: ValueKey(_currentIndex),
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 34.sp,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        height: 1.4,
+                      ),
+                    ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -403,37 +444,50 @@ class _LyricPageState extends State<LyricPage> {
               itemBuilder: (context, index) {
                 final line = _lyrics[index];
                 final isActive = index == _currentIndex;
+                final isTapped = index == _tappedIndex;
                 final distance = (index - _currentIndex).abs();
                 final opacity = _calculateOpacity(distance);
                 final blur = _calculateBlur(distance);
                 final scale = _calculateScale(distance);
 
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeInOutCubic,
-                  alignment: Alignment.center,
-                  height: 80,
-                  padding: EdgeInsets.symmetric(horizontal: 80.w),
-                  child: AnimatedDefaultTextStyle(
+                return GestureDetector(
+                  onTap: () => _onLyricTap(index),
+                  child: AnimatedContainer(
                     duration: const Duration(milliseconds: 400),
                     curve: Curves.easeInOutCubic,
-                    style: TextStyle(
-                      fontSize: isActive ? 60.sp : 44.sp,
-                      color: Colors.white.withOpacity(opacity),
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                      height: 1.3,
-                      letterSpacing: isActive ? 0.5 : 0.0,
-                    ),
-                    child: Transform.scale(
-                      scale: scale,
-                      child: ImageFiltered(
-                        imageFilter:
-                            ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-                        child: Text(
-                          line.text,
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                    alignment: Alignment.center,
+                    height: 80,
+                    padding: EdgeInsets.symmetric(horizontal: 80.w),
+                    decoration: isTapped
+                        ? BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12.r),
+                          )
+                        : null,
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeInOutCubic,
+                      style: TextStyle(
+                        fontSize: isActive ? 50.sp : 34.sp,
+                        color: isTapped
+                            ? Colors.white
+                            : Colors.white.withOpacity(opacity),
+                        fontWeight:
+                            isActive ? FontWeight.w600 : FontWeight.w400,
+                        height: 1.3,
+                        letterSpacing: isActive ? 0.5 : 0.0,
+                      ),
+                      child: Transform.scale(
+                        scale: isTapped ? 1.05 : scale,
+                        child: ImageFiltered(
+                          imageFilter:
+                              ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+                          child: Text(
+                            line.text,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                     ),

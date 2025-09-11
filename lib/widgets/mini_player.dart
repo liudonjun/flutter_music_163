@@ -18,8 +18,9 @@ class MiniPlayer extends StatelessWidget {
         }
 
         return SafeArea(
+          top: false,
           child: Container(
-            height: 80.h,
+            height: 100.h,
             color: Colors.grey[900],
             child: Material(
               color: Colors.transparent,
@@ -37,16 +38,15 @@ class MiniPlayer extends StatelessWidget {
                   );
                 },
                 child: Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: Row(
                     children: [
                       // 专辑封面
                       ClipRRect(
                         borderRadius: BorderRadius.circular(6.r),
                         child: Container(
-                          width: 64.w,
-                          height: 64.w,
+                          width: 80.w,
+                          height: 80.w,
                           decoration: BoxDecoration(
                             color: Colors.grey[800],
                           ),
@@ -81,7 +81,7 @@ class MiniPlayer extends StatelessWidget {
                               player.songTitle,
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 16.sp,
+                                fontSize: 30.sp,
                                 fontWeight: FontWeight.w500,
                               ),
                               maxLines: 1,
@@ -92,7 +92,7 @@ class MiniPlayer extends StatelessWidget {
                               player.artistName,
                               style: TextStyle(
                                 color: Colors.white60,
-                                fontSize: 14.sp,
+                                fontSize: 20.sp,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -108,7 +108,7 @@ class MiniPlayer extends StatelessWidget {
                           color: player.hasPrevious
                               ? Colors.white
                               : Colors.white30,
-                          size: 28.sp,
+                          size: 30.sp,
                         ),
                         onPressed:
                             player.hasPrevious ? player.playPrevious : null,
@@ -118,7 +118,7 @@ class MiniPlayer extends StatelessWidget {
                         icon: Icon(
                           player.isPlaying ? Icons.pause : Icons.play_arrow,
                           color: Colors.white,
-                          size: 32.sp,
+                          size: 34.sp,
                         ),
                         onPressed: () {
                           if (player.isPlaying) {
@@ -133,7 +133,7 @@ class MiniPlayer extends StatelessWidget {
                         icon: Icon(
                           Icons.skip_next,
                           color: player.hasNext ? Colors.white : Colors.white30,
-                          size: 28.sp,
+                          size: 30.sp,
                         ),
                         onPressed: player.hasNext ? player.playNext : null,
                       ),
