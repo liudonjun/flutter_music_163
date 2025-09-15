@@ -28,6 +28,7 @@ class GlobalPlayerManager extends ChangeNotifier {
   // 播放列表
   List<dynamic> _playlist = [];
   int _currentIndex = 0;
+  int _failureCount = 0; // 连续播放失败计数
 
   // 监听器
   StreamSubscription<Duration>? _positionSubscription;
@@ -95,6 +96,7 @@ class GlobalPlayerManager extends ChangeNotifier {
   Future<void> playPlaylist(List<dynamic> songs, int index) async {
     _playlist = songs;
     _currentIndex = index;
+    _failureCount = 0; // 重置失败计数
     await _playCurrentSong();
   }
 
@@ -135,10 +137,23 @@ class GlobalPlayerManager extends ChangeNotifier {
       }
 
       await _player.play();
+      _failureCount = 0; // 播放成功，重置失败计数
       notifyListeners();
     } catch (e) {
       debugPrint('播放歌曲失败: $e');
-      onError?.call('播放失败: ${e.toString()}');
+      _failureCount++;
+
+      // 如果连续失败次数小于播放列表长度，尝试下一首
+      if (_failureCount < _playlist.length && _playlist.isNotEmpty) {
+        debugPrint('自动切换到下一首歌曲 (失败次数: $_failureCount)');
+        onError?.call('当前歌曲无法播放，正在切换到下一首...');
+        await playNext();
+        return;
+      }
+
+      // 如果所有歌曲都尝试过了，显示错误信息
+      _failureCount = 0; // 重置计数
+      onError?.call('播放失败: 播放列表中的所有歌曲都无法播放');
     }
   }
 

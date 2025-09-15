@@ -5,7 +5,7 @@ class ApiService {
   static String _baseUrl = 'http://api.ygking.cn:3000';
 
   static const Map<String, String> apiSources = {
-    '线上': 'http://api.ygking.cn:3000',
+    '线上服务器': 'http://api.ygking.cn:3000',
     '本地服务器': 'http://192.168.1.28:3000',
   };
 
