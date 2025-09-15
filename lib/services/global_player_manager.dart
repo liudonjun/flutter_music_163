@@ -10,22 +10,25 @@ class GlobalPlayerManager extends ChangeNotifier {
   GlobalPlayerManager._internal();
 
   final _player = AudioPlayer();
-  
+
+  // 错误回调函数
+  Function(String)? onError;
+
   // 播放状态
   bool _isPlaying = false;
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
-  
+
   // 歌曲信息
   String _songTitle = "";
   String _artistName = "";
   String _albumArt = "";
   String _currentSongId = "";
-  
+
   // 播放列表
   List<dynamic> _playlist = [];
   int _currentIndex = 0;
-  
+
   // 监听器
   StreamSubscription<Duration>? _positionSubscription;
   StreamSubscription<bool>? _playingSubscription;
@@ -43,7 +46,7 @@ class GlobalPlayerManager extends ChangeNotifier {
   List<dynamic> get playlist => _playlist;
   int get currentIndex => _currentIndex;
   AudioPlayer get player => _player;
-  
+
   double get progress {
     if (_duration.inMilliseconds > 0) {
       return _position.inMilliseconds / _duration.inMilliseconds;
@@ -101,9 +104,9 @@ class GlobalPlayerManager extends ChangeNotifier {
     try {
       final song = _playlist[_currentIndex];
       final songId = song['id'].toString();
-      
+
       _currentSongId = songId;
-      
+
       // 获取歌曲详情
       final songDetail = await ApiService.getSongDetail(songId);
       _songTitle = songDetail['name'] ?? 'Unknown';
@@ -111,28 +114,31 @@ class GlobalPlayerManager extends ChangeNotifier {
           ? songDetail['ar'][0]['name']
           : 'Unknown Artist';
       _albumArt = songDetail['al']['picUrl'] ?? '';
-      
+
       // 获取播放URL
       final url = await ApiService.getSongUrl(songId);
       if (url == null) throw Exception('歌曲 URL 不可用');
-      
+
       debugPrint('播放URL: $url');
-      
+
       // 配置音频会话
       final session = await AudioSession.instance;
       await session.configure(const AudioSessionConfiguration.music());
-      
+
+      // 停止当前播放并设置新的URL
+      await _player.stop();
       await _player.setUrl(url);
-      
+
       // 初始化监听器（只在第一次时）
       if (_positionSubscription == null) {
         _initListeners();
       }
-      
+
       await _player.play();
       notifyListeners();
     } catch (e) {
       debugPrint('播放歌曲失败: $e');
+      onError?.call('播放失败: ${e.toString()}');
     }
   }
 

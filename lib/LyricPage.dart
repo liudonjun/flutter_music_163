@@ -42,6 +42,18 @@ class _LyricPageState extends State<LyricPage> {
   @override
   void initState() {
     super.initState();
+    // 设置错误回调
+    _playerManager.onError = (String errorMessage) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    };
     _fetchLyrics();
     _playerManager.addListener(_onPlayerStateChanged);
 

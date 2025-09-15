@@ -18,6 +18,23 @@ class _SearchPageState extends State<SearchPage> {
   bool _isLoading = false;
   bool _hasSearched = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // 设置错误回调
+    GlobalPlayerManager().onError = (String errorMessage) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    };
+  }
+
   Future<void> _performSearch(String keywords) async {
     if (keywords.trim().isEmpty) return;
 

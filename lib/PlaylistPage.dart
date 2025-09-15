@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'PlaylistDetailPage.dart';
 import 'SearchPage.dart';
 import 'services/api_service.dart';
+import 'services/settings_manager.dart';
 import 'widgets/mini_player.dart';
 
 class PlaylistPage extends StatefulWidget {
@@ -16,10 +17,20 @@ class _PlaylistPageState extends State<PlaylistPage> {
   List playlists = [];
   bool isLoading = true;
   bool isGridView = true;
+  SettingsManager? settingsManager;
+  String currentSource = '加载中...';
 
   @override
   void initState() {
     super.initState();
+    initializeSettings();
+  }
+
+  Future<void> initializeSettings() async {
+    settingsManager = await SettingsManager.getInstance();
+    setState(() {
+      currentSource = settingsManager!.getCurrentSourceName();
+    });
     fetchPlaylists();
   }
 
@@ -36,6 +47,64 @@ class _PlaylistPageState extends State<PlaylistPage> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> _changeApiSource(String sourceName) async {
+    final navigator = Navigator.of(context);
+    final url = settingsManager!.getApiUrlByName(sourceName);
+    await settingsManager!.setApiSource(url);
+    setState(() {
+      currentSource = sourceName;
+      isLoading = true;
+      playlists = [];
+    });
+    if (mounted) {
+      navigator.pop();
+    }
+    fetchPlaylists();
+  }
+
+  void _showApiSourceDialog() {
+    if (settingsManager == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: Text(
+          '选择数据源',
+          style: TextStyle(color: Colors.white, fontSize: 35.sp),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: settingsManager!.getAvailableApiSources().map((sourceName) {
+            return ListTile(
+              title: Text(
+                sourceName,
+                style: TextStyle(color: Colors.white, fontSize: 30.sp),
+              ),
+              leading: Radio<String>(
+                value: sourceName,
+                groupValue: currentSource,
+                onChanged: (value) {
+                  if (value != null) {
+                    _changeApiSource(value);
+                  }
+                },
+                activeColor: Colors.blue,
+              ),
+            );
+          }).toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('取消',
+                style: TextStyle(color: Colors.blue, fontSize: 30.sp)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -65,6 +134,13 @@ class _PlaylistPageState extends State<PlaylistPage> {
                               setState(() {
                                 isGridView = !isGridView;
                               });
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.cloud,
+                                color: Colors.white, size: 28.sp),
+                            onPressed: () {
+                              _showApiSourceDialog();
                             },
                           ),
                           IconButton(

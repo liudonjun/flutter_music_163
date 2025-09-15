@@ -2,8 +2,27 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.1.28:3000';
-  // static const String baseUrl = 'http://api.ygking.cn:3000';
+  static String _baseUrl = 'http://api.ygking.cn:3000';
+
+  static const Map<String, String> apiSources = {
+    '线上': 'http://api.ygking.cn:3000',
+    '本地服务器': 'http://192.168.1.28:3000',
+  };
+
+  static String get baseUrl => _baseUrl;
+
+  static void setApiSource(String url) {
+    _baseUrl = url;
+  }
+
+  static String getCurrentSourceName() {
+    for (var entry in apiSources.entries) {
+      if (entry.value == _baseUrl) {
+        return entry.key;
+      }
+    }
+    return '未知源';
+  }
 
   static Future<Map<String, dynamic>> _makeRequest(String endpoint) async {
     try {
